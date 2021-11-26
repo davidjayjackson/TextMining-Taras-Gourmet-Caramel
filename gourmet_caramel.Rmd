@@ -1,0 +1,144 @@
+---
+title: "Taras Courmet Carmels"
+author: "David Jackson"
+date: "11/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(janitor)
+library(tidytext)
+library(sentimentr)
+library(lubridate)
+library(wordcloud)
+library(stopwords)
+library(plotly)
+```
+
+## YouTube Source: https://youtu.be/eQU8Zd1B9tM
+
+## Import and Clean Amazon Product Reviews
+
+* Change Log:
+* Imported Amazon review data
+* Cleaned up column names
+* Removed undeeded columns
+* Extracted date  from date column.
+
+```{r}
+taras_caramels <- read_csv("./taras_caramels.csv") %>%
+  janitor::clean_names() %>% select(-id,-profile_name,-images)
+taras_caramels$text <- tolower(taras_caramels$text)
+```
+```{r}
+# Extract Dates from test column
+taras_caramels$Ymd <- lubridate::mdy(taras_caramels$date)
+taras_caramels <- taras_caramels %>% select(Ymd,title:helpful)  %>%
+  rename(review = title)
+
+```
+
+```{r}
+summary(taras_caramels)
+```
+```{r}
+ggplot(taras_caramels) + geom_histogram(aes(x=rating),bins = 9) +
+  labs(title = "Count of  the Number Reviews by Rating")
+```
+```{r}
+p1 <-taras_caramels %>% count(Ymd) %>% ggplot() + geom_col(aes(x=Ymd,y=n)) +
+  labs(title = "Number of Reviews per Day",y="Number of Reviews")
+ggplotly(p1)
+```
+
+
+
+## Analyize Words Using "sentimentr" Package
+
+
+#### Commands from Video (see above)
+
+```{r}
+head(sentiment(taras_caramels$review),25)
+```
+```{r}
+sentiment_by(taras_caramels$review)
+```
+
+## Sentence Structure
+
+```{r}
+taras_sentence <- taras_caramels %>% select(review) %>%
+  get_sentences() %>%
+  sentiment()
+
+taras_sentence %>% ggplot() + geom_density(aes(x=sentiment)) +
+  labs(title="Density Plot of Rating Sentiment",
+       x=" <-- Negative(-) Bad  but Plus(+) Good --> ")
+```
+```{r}
+taras_sentence %>% ggplot() + geom_histogram(aes(x=sentiment)) +
+  labs(title="Histogram of Rating Sentiment",
+       x=" <-- Negative(-) Bad  but Plus(+) Good --> ")
+```
+
+```{r}
+taras_sentence <- taras_sentence %>%
+  mutate(plus_minus = if_else(sentiment >0,"Positve","Negative")) 
+
+taras_sentence %>% count(plus_minus,sort =T) %>%
+  ggplot(aes(x=plus_minus,y=n)) + geom_col() +
+  labs(title = "Negative vs Postive Ratings",
+       y="Number of Ratings")
+```
+
+## Begin TidyText Package Analysis
+
+
+```{r}
+taras_tokens <- taras_caramels %>% select(review) %>%
+  unnest_tokens(word, review) 
+```
+```{r}
+taras_tokens  %>% count(word,sort =T ) %>% top_n(25) %>%
+  ggplot(aes(x=reorder(word,n),y=n)) + geom_col() + coord_flip()
+```
+
+```{r}
+data(stop_words)
+taras_clean <- taras_tokens %>% 
+  anti_join(stop_words)
+
+```
+```{r}
+taras_clean %>% count(word,sort =T ) %>% top_n(25) %>%
+  ggplot(aes(x=reorder(word,n),y=n)) + geom_col() + coord_flip() +
+  labs(title ="Count of Top 25 Words",
+       x="Count of Words","Token Words",y="Word Counts")
+```
+
+## Construct a Word Cloud
+
+```{r}
+taras_clean <- taras_clean %>% mutate(word = if_else(word =="free","sugarfree",word))
+taras_clean <- taras_clean %>% mutate(word = if_else(word =="sugar","sugarfree",word))
+
+taras_clean <- taras_clean %>% mutate(word = if_else(word =="caramals","caramel",word))
+
+taras_clean <- taras_clean %>% mutate(word = if_else(word =="caramels","caramel",word))
+
+taras_clean <- taras_clean %>% mutate(word = if_else(word =="caramel's","caramel",word))
+```
+
+```{r} 
+taras_clean %>% filter(word =="sugarfree") %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
+taras_clean %>% filter(word !="sugarfree") %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100,random.color=TRUE))
+```
+
