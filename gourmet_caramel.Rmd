@@ -1,12 +1,12 @@
 ---
 title: "Taras Courmet Carmels"
 author: "David Jackson"
-date: "11/25/2021"
-output: html_document
+date: "2020-01-17"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,message = FALSE,error = FALSE,warning = FALSE)
 library(tidyverse)
 library(scales)
 library(janitor)
@@ -25,8 +25,18 @@ library(plotly)
 * Change Log:
 * Imported Amazon review data
 * Cleaned up column names
-* Removed undeeded columns
+* Removed unsed columns
 * Extracted date  from date column.
+
+## Tara's All Natural Handcrafted Gourmet Sea Salt Caramel
+
+* OLD FASHIONED CRAFT QUALITY – Tara’s caramels are kettle cooked in small batches from a century old recipe. Grandma’s were so good, we didn’t change them.
+* SIMPLE, PREMIUM NATURAL INGREDIENTS – We use real butter, fresh heavy cream, and Madagascar vanilla. We use Grandma’s same recipe from 100 years ago
+* NATURALLY RICH CARAMEL FLAVOR – Tara’s handmade gourmet caramels have the homemade taste and color you can only get from carefully crafting in small batches. No artificial flavors or colors added – GLUTEN FREE and KOSHER
+* SOFT, CREAMY, BUTTERY TEXTURE – Individually wrapped high quality caramel means a soft bite that doesn’t stick to your teeth
+* INGREDIENTS - Corn syrup, sweetened condensed milk, heavy cream, invert sugar, butter, brown sugar, sugar, natural flavor, sea salt, soy lecithin (http:// Amazon.com)
+
+
 
 ```{r}
 taras_caramels <- read_csv("./taras_caramels.csv") %>%
